@@ -1,6 +1,6 @@
 from .source import Source
 from audiobookdl import AudiobookFile, Chapter, AudiobookMetadata, Cover, Audiobook, logging
-from audiobookdl.exceptions import DataNotPresent, AudiobookDLException
+from audiobookdl.exceptions import DataNotPresent, AudiobookDLException, MissingBookAccess, RequestError
 from audiobookdl.utils.image import normalize_cover_image
 from typing import Any, Optional, Dict, List
 from datetime import datetime
@@ -214,9 +214,16 @@ class NextorySource(Source):
     def download_audio_data(self, book_info: dict) -> dict:
         format_data = self.find_format_data(book_info)
         format_id = format_data["identifier"]
-        return self._session.get(
+        logging.debug(f"Fetching audio data for format_id={format_id}")
+        response = self._session.get(
             f"https://api.nextory.com/reader/books/{format_id}/packages/audio"
-        ).json()
+        )
+        logging.debug(f"Audio data response status: {response.status_code}")
+        if response.status_code == 403:
+            raise MissingBookAccess
+        if response.status_code != 200:
+            raise RequestError
+        return response.json()
 
 
     @staticmethod
@@ -243,11 +250,6 @@ class NextorySource(Source):
 
 
     def get_metadata(self, book_info) -> AudiobookMetadata:
-        # Debug: Log the full book_info structure to understand available fields
-        import json
-        logging.debug(f"Nextory book_info keys: {list(book_info.keys())}")
-        logging.debug(f"Full book_info: {json.dumps(book_info, indent=2, default=str)}")
-
         # Required fields
         title = book_info["title"]
         metadata = AudiobookMetadata(title)

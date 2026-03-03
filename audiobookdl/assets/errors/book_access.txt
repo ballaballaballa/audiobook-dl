@@ -4,3 +4,4 @@ Your don't have access to the book you are trying to download.
 
 [underline]Potential fixes[/underline]
  • Libraries: Loan the book
+ • Nextory: Ensure you have an active subscription
