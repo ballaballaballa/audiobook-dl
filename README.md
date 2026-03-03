@@ -25,20 +25,15 @@ audiobook-dl currently supports downloading from the following sources:
 [More info](./supported_sites.md)
 
 ## Installation
-audiobook-dl can be installed from the repo itself or through pip.
+This fork of audiobook-dl can be installed from this repo itself.
 
-To get the newest stable version with pip run:
+To install, run:
 ```shell
-pip install audiobook-dl
-```
-
-If you want to use the newest version (can be unstable) run:
-```shell
-pip install "git+https://github.com/jo1gi/audiobook-dl.git"
+pip install "git+https://github.com/ballaballaballa/audiobook-dl.git"
 ```
 or
 ```shell
-git clone https://github.com/jo1gi/audiobook-dl.git
+git clone https://github.com/ballaballaballa/audiobook-dl.git
 cd audiobook-dl
 pip install .
 ```
