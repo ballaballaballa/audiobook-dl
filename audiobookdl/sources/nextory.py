@@ -244,7 +244,10 @@ class NextorySource(Source):
             # Set expected values to suppress debug warnings
             for stream_file in stream_files:
                 stream_file.expected_status_code = 200
-                stream_file.expected_content_type = "audio/aac"
+                if stream_file.ext == "ts":
+                    stream_file.expected_content_type = "video/MP2T"
+                else:
+                    stream_file.expected_content_type = "audio/aac"
             files.extend(stream_files)
         return files
 
