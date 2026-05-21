@@ -57,13 +57,14 @@ def combine_audiofiles(filepaths: Sequence[str], tmp_dir: str, output_path: str)
         for chunk_idx, i in enumerate(range(1, len(filepaths), COMBINE_CHUNK_SIZE)):
             chunk_files = filepaths[i:i+COMBINE_CHUNK_SIZE]
 
-            # Use concat demuxer with file list to avoid "too many open files" error
+            # Use concat demuxer with file list to avoid "too many open files" error.
+            # ffmpeg resolves concat-list entries relative to the list file's
+            # directory, so write basenames — all referenced files live in tmp_dir.
             concat_list_path = os.path.join(tmp_dir, "concat_list.txt")
             with open(concat_list_path, "w") as f:
-                f.write(f"file '{tmp_input}'\n")
+                f.write(f"file '{os.path.basename(tmp_input)}'\n")
                 for filepath in chunk_files:
-                    # Escape single quotes in filepath
-                    escaped_path = filepath.replace("'", "'\\''")
+                    escaped_path = os.path.basename(filepath).replace("'", "'\\''")
                     f.write(f"file '{escaped_path}'\n")
 
             command = [
@@ -96,13 +97,14 @@ def combine_audiofiles(filepaths: Sequence[str], tmp_dir: str, output_path: str)
                 description = f"Combining files (chunk {chunk_idx + 1}/{num_chunks})"
                 task = create_progress_task(progress, description, duration)
 
-                # Use concat demuxer with file list to avoid "too many open files" error
+                # Use concat demuxer with file list to avoid "too many open files" error.
+                # ffmpeg resolves concat-list entries relative to the list file's
+                # directory, so write basenames — all referenced files live in tmp_dir.
                 concat_list_path = os.path.join(tmp_dir, "concat_list.txt")
                 with open(concat_list_path, "w") as f:
-                    f.write(f"file '{tmp_input}'\n")
+                    f.write(f"file '{os.path.basename(tmp_input)}'\n")
                     for filepath in chunk_files:
-                        # Escape single quotes in filepath
-                        escaped_path = filepath.replace("'", "'\\''")
+                        escaped_path = os.path.basename(filepath).replace("'", "'\\''")
                         f.write(f"file '{escaped_path}'\n")
 
                 command = [
