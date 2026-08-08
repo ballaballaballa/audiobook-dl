@@ -47,7 +47,7 @@ class NextorySource(Source):
             {
                 # New version headers
                 "X-Application-Id": self.APP_ID,
-                "X-App-Version": "2026.05.4",
+                "X-App-Version": "2026.07.9",
                 "X-Locale": self.LOCALE,
                 "X-Model": "Personal Computer",
                 "X-Device-Id": device_id,
@@ -228,7 +228,7 @@ class NextorySource(Source):
 
     @staticmethod
     def find_format_data(book_info: dict) -> dict:
-        for format in book_info["formats"]:
+        for format in book_info.get("formats", []):
             if format["type"] == "hls":
                 return format
         raise DataNotPresent
