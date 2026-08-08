@@ -231,7 +231,7 @@ class StorytelSource(Source):
                 return self.download_book_from_url(url)
             # use API when possible
             elif list_type in ("series", "authors", "narrators"):
-                return self.download_lists_api(url, list_type, language)
+                return self.download_lists_api(url, list_type)
             # some lists are not available via the API, use website scraping
             else:
                 return self.download_books_from_website(url)
@@ -241,10 +241,9 @@ class StorytelSource(Source):
         self,
         url: str,
         list_type: str,
-        language: str,
     ) -> Series[str]:
         list_id: str = self.get_id_from_url(url)
-        list_details = self.download_list_books(list_id, list_type, language)
+        list_details = self.download_list_books(list_id, list_type)
 
         books: List[Union[BookId[str], Audiobook]] = []
         for item in list_details["items"]:
@@ -389,7 +388,7 @@ class StorytelSource(Source):
         self,
         list_id: str,
         list_type: str,
-        languages: str,
+        languages: str = "en,de,tr,ar,ru,pl,it,es,sv,fr,nl",
         formats: str = "abook",
     ) -> Dict[str, Any]:
         """Download details about book list
@@ -397,20 +396,18 @@ class StorytelSource(Source):
         :param formats: comma separated list of formats (abook,ebook,podcast)
         :param languages: comma separated list of languages (en,de,tr,ar,ru,pl,it,es,sv,fr,nl)
         """
-        nextPageToken = 0
-
         # API returns only 10 items per request
-        # if the nextPageToken
-        result: Dict[str, Any] = {"nextPageToken": False}
+        result: Dict[str, Any] = {}
+        is_first_page = True
 
-        while result["nextPageToken"] is not None:
+        while is_first_page or result.get("nextPageToken") is not None:
             params: dict[str, str] = {
                 "includeListDetails": "true",  # include listMetadata,filterOptions,sortOption sections
                 "includeFormats": formats,
                 "includeLanguages": languages,
                 "kidsMode": "false",
             }
-            if result["nextPageToken"]:
+            if result.get("nextPageToken"):
                 params["nextPageToken"] = result["nextPageToken"]
 
             resp = self._session.get(
@@ -418,25 +415,8 @@ class StorytelSource(Source):
                 params=params,
             )
 
-            # Handle 404 - try fallback languages
             if resp.status_code == 404:
-                logging.debug(f"List not found with language {languages}, trying fallback languages")
-                fallback_languages = ['en', 'us', 'uk']
-                for fallback_lang in fallback_languages:
-                    if fallback_lang == languages:
-                        continue
-                    params["includeLanguages"] = fallback_lang
-                    resp = self._session.get(
-                        f"https://api.storytel.net/explore/lists/{list_type}/{list_id}",
-                        params=params,
-                    )
-                    if resp.status_code == 200:
-                        logging.debug(f"Successfully retrieved list with language {fallback_lang}")
-                        break
-
-                # If still 404, raise error
-                if resp.status_code == 404:
-                    raise BookNotFound
+                raise BookNotFound
 
             try:
                 data = resp.json()
@@ -445,11 +425,12 @@ class StorytelSource(Source):
                     f"Failed to parse list response: {resp.status_code}"
                 )
 
-            if result["nextPageToken"] == 0:
+            if is_first_page:
                 result = data
+                is_first_page = False
             else:
                 result["items"].extend(data["items"])
-                result["nextPageToken"] = data["nextPageToken"]
+                result["nextPageToken"] = data.get("nextPageToken")
 
         lists_path = self._get_lists_path(result["id"], languages, formats)
         with open(lists_path, "w") as json_file:
