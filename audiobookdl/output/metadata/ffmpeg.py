@@ -22,10 +22,17 @@ FFMPEG_PROGRESS: List[Union[str, ProgressColumn]] = [
 TMP_CHAPTER_FILENAME = "chapters.tmp.txt"
 TMP_MEDIA_FILENAME = "audiobook.tmp.mp4"
 
+def escape_ffmetadata(value: str) -> str:
+    """Escape characters with special meaning in ffmpeg metadata files"""
+    for char in "\\=;#":
+        value = value.replace(char, f"\\{char}")
+    return value.replace("\n", " ")
+
+
 def create_chapter_text(title: str, start: int, end: int) -> str:
     chapter_template = utils.read_asset_file("assets/ffmpeg_chapter_template.txt")
     return chapter_template.format(
-        title = title,
+        title = escape_ffmetadata(title),
         start = start,
         end = end
     )
