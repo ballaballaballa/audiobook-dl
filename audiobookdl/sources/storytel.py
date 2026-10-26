@@ -19,6 +19,7 @@ from audiobookdl.exceptions import (
     BookHasNoAudiobook,
     BookNotReleased,
     DataNotPresent,
+    RequestError,
 )
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
@@ -167,18 +168,18 @@ class StorytelSource(Source):
 
             # Handle specific status codes
             if resp.status_code == 400:
-                raise UserNotAuthorized(f"Bad request (400): Invalid credentials or request format. Response: {resp.text[:200]}")
+                raise UserNotAuthorized(message=f"Bad request (400): Invalid credentials or request format. Response: {resp.text[:200]}")
             elif resp.status_code == 401:
-                raise UserNotAuthorized(f"Unauthorized (401): Invalid username or password")
+                raise UserNotAuthorized(message=f"Unauthorized (401): Invalid username or password")
             elif resp.status_code == 403:
                 self.check_cloudflare_blocked(resp)
-                raise UserNotAuthorized(f"Forbidden (403): Access denied. This may be due to region restrictions or API version incompatibility")
+                raise UserNotAuthorized(message=f"Forbidden (403): Access denied. This may be due to region restrictions or API version incompatibility")
             elif resp.status_code == 429:
-                raise UserNotAuthorized(f"Too many requests (429): Rate limit exceeded. Please try again later")
+                raise UserNotAuthorized(message=f"Too many requests (429): Rate limit exceeded. Please try again later")
             elif resp.status_code >= 500:
-                raise UserNotAuthorized(f"Server error ({resp.status_code}): Storytel API is experiencing issues. Please try again later")
+                raise UserNotAuthorized(message=f"Server error ({resp.status_code}): Storytel API is experiencing issues. Please try again later")
             else:
-                raise UserNotAuthorized(f"Authentication failed with status code {resp.status_code}. Response: {resp.text[:200]}")
+                raise UserNotAuthorized(message=f"Authentication failed with status code {resp.status_code}. Response: {resp.text[:200]}")
 
         try:
             user_data = resp.json()
@@ -186,11 +187,11 @@ class StorytelSource(Source):
 
             if "accountInfo" not in user_data:
                 logging.debug(f"Response keys: {list(user_data.keys())}")
-                raise UserNotAuthorized(f"Invalid login response: missing accountInfo. Available keys: {list(user_data.keys())}")
+                raise UserNotAuthorized(message=f"Invalid login response: missing accountInfo. Available keys: {list(user_data.keys())}")
 
             if "jwt" not in user_data["accountInfo"] or "lang" not in user_data["accountInfo"]:
                 logging.debug(f"accountInfo keys: {list(user_data['accountInfo'].keys())}")
-                raise UserNotAuthorized(f"Invalid login response: missing jwt or lang. Available accountInfo keys: {list(user_data['accountInfo'].keys())}")
+                raise UserNotAuthorized(message=f"Invalid login response: missing jwt or lang. Available accountInfo keys: {list(user_data['accountInfo'].keys())}")
 
             jwt = user_data["accountInfo"]["jwt"]
             self._language = user_data["accountInfo"]["lang"]
@@ -199,7 +200,7 @@ class StorytelSource(Source):
         except json.JSONDecodeError as e:
             logging.debug(f"JSON decode error: {e}")
             logging.debug(f"Response text: {resp.text[:500]}")
-            raise UserNotAuthorized(f"Invalid login response: could not parse JSON. Response: {resp.text[:200]}")
+            raise UserNotAuthorized(message=f"Invalid login response: could not parse JSON. Response: {resp.text[:200]}")
 
     def _relogin_check(self) -> None:
         """
@@ -308,7 +309,7 @@ class StorytelSource(Source):
             raise DataNotPresent
         book_id = parsed.path.split("-")[-1]
         if not book_id:
-            raise DataNotPresent("Could not extract book ID from URL")
+            raise DataNotPresent(message="Could not extract book ID from URL")
         return book_id
 
     def _update_metadata(
@@ -590,20 +591,20 @@ class StorytelSource(Source):
             start_time += chapter["durationInMilliseconds"]
         return chapters
 
-    def download_cover(self, book_details) -> Cover:
+    def download_cover(self, book_details) -> Optional[Cover]:
         # Handle missing cover data
         if "cover" not in book_details or "url" not in book_details["cover"]:
-            logging.debug("Cover data missing, returning empty cover")
-            return Cover(b"", "jpg")
+            logging.debug("Cover data missing")
+            return None
 
         cover_url = book_details["cover"]["url"]
         # cover_url = f"https://www.storytel.com/images/{isbn}/640x640/cover.jpg"
         try:
             cover_data = self.get(cover_url)
             return Cover(cover_data, "jpg")
-        except (OSError, IOError) as e:
+        except (OSError, RequestError) as e:
             logging.debug(f"Failed to download cover: {e}")
-            return Cover(b"", "jpg")
+            return None
 
     def on_download_complete(self, audiobook: Audiobook) -> None:
         consumableId = audiobook.source_data["consumableId"]

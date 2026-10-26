@@ -99,7 +99,7 @@ class NextorySource(Source):
         book_info = self.get_book_info_direct(book_id)
         if book_info is None:
             # If direct fetch fails, try adding to want to read list and then fetch
-            logging.info("Could not fetch book info directly, attempting to add to want to read list")
+            logging.debug("Could not fetch book info directly, attempting to add to want to read list")
             self.add_to_want_to_read(book_id)
             want_to_read_list = self.download_want_to_read_list()
             book_info = self.find_book_info(book_id, want_to_read_list)
@@ -160,7 +160,7 @@ class NextorySource(Source):
                 json={"product_id": book_id}
             )
             if response.status_code in [200, 201]:
-                logging.info(f"Successfully added book {book_id} to want to read list")
+                logging.debug(f"Successfully added book {book_id} to want to read list")
                 return True
             else:
                 logging.debug(f"Failed to add to want to read list: {response.status_code}")

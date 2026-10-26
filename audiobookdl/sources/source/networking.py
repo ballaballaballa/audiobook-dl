@@ -49,7 +49,7 @@ def get_stream_files(self, url: str, headers={}, extension=None) -> List[Audiobo
     """Creates a list of audio files from an m3u8 file"""
     playlist = m3u8.load(url, headers=headers)
     files = []
-    for _, seg in enumerate(playlist.segments):
+    for index, seg in enumerate(playlist.segments):
         if extension is None:
             extension = os.path.splitext(seg.absolute_uri)[1][1:].split("?")[0]
         current = AudiobookFile(
@@ -57,10 +57,12 @@ def get_stream_files(self, url: str, headers={}, extension=None) -> List[Audiobo
             ext = extension,
             headers = headers
         )
-        if not seg.key.method == "NONE":
+        if seg.key and seg.key.method != "NONE":
+            # Without an explicit IV, HLS uses the segment's media sequence number
+            iv = int(seg.key.iv, 0) if seg.key.iv else (playlist.media_sequence or 0) + index
             current.encryption_method = AESEncryption(
                 key = self._get_page(seg.key.absolute_uri, headers=headers),
-                iv = int(seg.key.iv, 0).to_bytes(16, byteorder='big')
+                iv = iv.to_bytes(16, byteorder='big')
             )
         files.append(current)
     return files

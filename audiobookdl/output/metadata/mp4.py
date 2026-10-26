@@ -83,10 +83,12 @@ def add_mp4_metadata(filepath: str, metadata: AudiobookMetadata):
                 audio.tags.RegisterFreeformKey("isbn", "isbn") # type: ignore
                 audio["isbn"] = value
             elif key == "publisher":
-                # Store publisher in both standard and lowercase freeform
+                # Store publisher in both ©pub and a lowercase freeform atom.
+                # RegisterFreeformKey is class-wide, so use a separate key to
+                # keep the ©pub mapping intact
                 audio[MP4_CONVERT[key]] = value
-                audio.tags.RegisterFreeformKey("publisher", "publisher") # type: ignore
-                audio["publisher"] = value
+                audio.tags.RegisterFreeformKey("publisher_freeform", "publisher") # type: ignore
+                audio["publisher_freeform"] = value
             elif key in MP4_CONVERT:
                 audio[MP4_CONVERT[key]] = value
             elif key in audio.Get.keys():

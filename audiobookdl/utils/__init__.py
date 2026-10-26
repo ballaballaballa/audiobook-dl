@@ -11,17 +11,17 @@ def levenstein_distance(a: str, b: str) -> int:
 
     https://en.wikipedia.org/wiki/Levenshtein_distance
     """
-    if len(a) == 0:
-        return len(b)
-    if len(b) == 0:
-        return len(a)
-    if a[0] == b[0]:
-        return levenstein_distance(a[1:], b[1:])
-    return 1 + min(
-        levenstein_distance(a, b[1:]), # Character is inserted
-        levenstein_distance(a[1:], b), # Character is deleted
-        levenstein_distance(a[1:], b[1:]) # Character is replaced
-    )
+    previous = list(range(len(b) + 1))
+    for i, char_a in enumerate(a, 1):
+        current = [i]
+        for j, char_b in enumerate(b, 1):
+            current.append(min(
+                previous[j] + 1, # Character is deleted
+                current[j-1] + 1, # Character is inserted
+                previous[j-1] + (char_a != char_b) # Character is replaced
+            ))
+        previous = current
+    return previous[-1]
 
 def nearest_string(input: str, list: Sequence[str]) -> str:
     """

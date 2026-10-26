@@ -1,0 +1,4 @@
+[red]ERROR: FFmpeg encoder '{encoder}' not found[/red]
+
+Install ffmpeg with support for '{encoder}' or use a different encoder with
+[green]mp4_audio_encoder[/green] (e.g. aac, aac_at, libfdk_aac).

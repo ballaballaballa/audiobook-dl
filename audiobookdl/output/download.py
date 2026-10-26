@@ -10,7 +10,6 @@ from rich.progress import Progress, BarColumn, ProgressColumn, SpinnerColumn
 from rich.prompt import Confirm
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from math import log10
 
 
 DOWNLOAD_PROGRESS: List[Union[str, ProgressColumn]] = [
@@ -40,9 +39,10 @@ def download(audiobook: Audiobook, options):
         logging.book_update("Cleaning up files")
         if len(audiobook.files) == 1:
             filepath, filepath_tmp = create_filepath(audiobook, output_dir, 0)
-            os.remove(filepath_tmp)
+            if os.path.exists(filepath_tmp):
+                os.remove(filepath_tmp)
         else:
-            shutil.rmtree(output_dir)
+            shutil.rmtree(output_dir, ignore_errors=True)
 
 
 def download_audiobook(audiobook: Audiobook, output_dir: str, options):
@@ -172,7 +172,7 @@ def create_filepath(audiobook: Audiobook, output_dir: str, index: int) -> Tuple[
     if len(audiobook.files) == 1:
         path = f"{output_dir}.{extension}"
     else:
-        padded_index = str(index).zfill(int(log10(len(audiobook.files))))
+        padded_index = str(index).zfill(len(str(len(audiobook.files) - 1)))
         name = f"Part {padded_index}.{extension}"
         path = os.path.join(output_dir, name)
     path_tmp = f"{path}.tmp"
@@ -194,7 +194,13 @@ def download_file(args: Tuple[Audiobook, str, int, Any]) -> str:
                             expected_status_code=file.expected_status_code,
                             expected_content_type=file.expected_content_type,
                             )
-    total_filesize = int(request.headers["Content-length"])
+    if not file.expected_status_code and not request.ok:
+        raise DownloadError(status_code=request.status_code,
+                            content_type=content_type,
+                            expected_status_code="2xx",
+                            expected_content_type=file.expected_content_type,
+                            )
+    total_filesize = int(request.headers.get("Content-length", 0))
     if not file.expected_status_code:
         logging.debug(f"expected_status_code not set by source, status-code is {request.status_code}, please update the source implementation")
     if not file.expected_content_type:

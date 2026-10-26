@@ -150,7 +150,7 @@ def embed_id3_cover(filepath: str, cover: Cover):
             audio = ID3(filepath)
         except ID3NoHeaderError:
             return
-        audio.add(APIC(type=0, data=cover.image, mime=mimetype))
+        audio.add(APIC(type=3, data=cover.image, mime=mimetype)) # 3 = front cover
         audio.save()
 
 
@@ -175,7 +175,10 @@ def add_id3_chapters(filepath: str, chapters: Sequence[Chapter]):
     ) as progress:
         task = progress.add_task(f"Adding {len(chapters)} chapters to {filename}", total=None)
 
-        audio = ID3(filepath)
+        try:
+            audio = ID3(filepath)
+        except ID3NoHeaderError:
+            audio = ID3()
         for i in range(len(chapters)-1):
             add_id3_chapter(
                 audio,
@@ -186,4 +189,11 @@ def add_id3_chapters(filepath: str, chapters: Sequence[Chapter]):
             )
         length = MutagenFile(filepath).info.length*1000
         add_id3_chapter(audio, chapters[-1].start, length, chapters[-1].title, len(chapters))
-        audio.save()
+        # Many players ignore CHAP frames without a top-level table of contents
+        audio.add(CTOC(
+            element_id=u"toc",
+            flags=CTOCFlags.TOP_LEVEL | CTOCFlags.ORDERED,
+            child_element_ids=[u"chp"+str(i) for i in range(1, len(chapters)+1)],
+            sub_frames=[TIT2(text=[u"Table of Contents"])]
+        ))
+        audio.save(filepath)

@@ -97,7 +97,7 @@ def structure_config(config_location: str, config_dict: dict) -> Config:
         for source_name, values in config_dict["sources"].items():
             cookie_file = values.get("cookie_file")
             if cookie_file:
-                cookie_file = os.path.relpath(values.get("cookie_file"), start=config_location)
+                cookie_file = os.path.join(os.path.dirname(config_location), os.path.expanduser(cookie_file))
             sources[source_name] = SourceConfig(
                 username = values.get("username"),
                 password = values.get("password"),

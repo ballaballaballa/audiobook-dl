@@ -6,10 +6,12 @@ from .ffmpeg_progress import (
     create_progress_task
 )
 
+import json
 import os
 import shutil
 import platform
 import subprocess
+from collections import defaultdict
 from typing import Sequence, Mapping, List, Union
 from rich.progress import BarColumn, ProgressColumn, SpinnerColumn
 
@@ -198,7 +200,6 @@ def get_audio_bitrate(filepath: str) -> Union[int, None]:
             timeout=10
         )
         if result.returncode == 0:
-            import json
             data = json.loads(result.stdout)
             if "streams" in data and len(data["streams"]) > 0:
                 stream = data["streams"][0]
@@ -226,6 +227,7 @@ def convert_output(filenames: Sequence[str], output_format: str, mp4_audio_encod
     if logging.ffmpeg_output:
         for old_path in filenames:
             path_without_ext, old_ext = os.path.splitext(old_path)
+            old_ext = old_ext.lstrip(".")
             new_path = f"{path_without_ext}.{output_format}"
             if not output_format == old_ext:
                 # Build ffmpeg command
@@ -238,11 +240,7 @@ def convert_output(filenames: Sequence[str], output_format: str, mp4_audio_encod
                         encoder = mp4_audio_encoder or "aac"
                         # Verify encoder is available
                         if not check_encoder_available(encoder):
-                            raise MissingEncoder(
-                                error_description=f"FFmpeg encoder '{encoder}' not found. "
-                                f"Install ffmpeg with support for '{encoder}' or use a different encoder "
-                                f"(e.g., aac, aac_at, libfdk_aac)"
-                            )
+                            raise MissingEncoder(encoder=encoder)
                         # Detect source bitrate and match it
                         bitrate = get_audio_bitrate(old_path)
                         if bitrate:
@@ -266,6 +264,7 @@ def convert_output(filenames: Sequence[str], output_format: str, mp4_audio_encod
         with logging.progress(FFMPEG_PROGRESS) as progress:
             for old_path in filenames:
                 path_without_ext, old_ext = os.path.splitext(old_path)
+                old_ext = old_ext.lstrip(".")
                 new_path = f"{path_without_ext}.{output_format}"
                 if not output_format == old_ext:
                     # Get duration for progress tracking
@@ -286,11 +285,7 @@ def convert_output(filenames: Sequence[str], output_format: str, mp4_audio_encod
                             encoder = mp4_audio_encoder or "aac"
                             # Verify encoder is available
                             if not check_encoder_available(encoder):
-                                raise MissingEncoder(
-                                    error_description=f"FFmpeg encoder '{encoder}' not found. "
-                                    f"Install ffmpeg with support for '{encoder}' or use a different encoder "
-                                    f"(e.g., aac, aac_at, libfdk_aac)"
-                                )
+                                raise MissingEncoder(encoder=encoder)
                             # Detect source bitrate and match it
                             bitrate = get_audio_bitrate(old_path)
                             if bitrate:
@@ -361,11 +356,12 @@ def gen_output_location(template: str, metadata: AudiobookMetadata, remove_chars
     # If author is missing but narrator exists, use narrator as author
     if (not metadata_dict.get('author') or metadata_dict.get('author') == '') and metadata_dict.get('narrator'):
         metadata_dict['author'] = metadata_dict['narrator']
-    # Apply remove_chars to each metadata value, not to the path structure
+    # Sanitize each metadata value, not the path structure, so remote
+    # metadata can't add path separators
     for key, value in metadata_dict.items():
         if isinstance(value, str):
-            metadata_dict[key] = _remove_chars(value, remove_chars)
-    formatted = template.format(**metadata_dict)
+            metadata_dict[key] = _remove_chars(_fix_output(value), remove_chars)
+    formatted = template.format_map(defaultdict(lambda: "NA", metadata_dict))
     return formatted
 
 

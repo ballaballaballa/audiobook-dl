@@ -102,13 +102,13 @@ class YourCloudLibrarySource(Source):
         chapters = []
         time = 0
         for chapter in book_info["chapters"]:
-            time += chapter["duration"]
             chapters.append(
                 Chapter(
                     start = time,
                     title = f"Chapter {chapter['chapter_number']}"
                 )
             )
+            time += chapter["duration"]
         return chapters
 
     def download_book_info(self, account_id: str, fulfillment_id: str) -> dict:
