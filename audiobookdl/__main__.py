@@ -16,19 +16,18 @@ def main() -> None:
     # Parsing arguments
     options = args.parse_arguments()
     config = load_config(options.config_location)
-    # Use config values if CLI args are at their defaults
-    if options.output_template == "{title}" and config.output_template:
-        options.output_template = config.output_template
+    # CLI args take precedence over config values, which take precedence over defaults
+    options.output_template = options.output_template or config.output_template or "{title}"
     if config.database_directory:
         default_db = os.path.join(platformdirs.user_config_dir("audiobook-dl", "jo1gi"), "db")
         if options.database_directory == default_db:
             options.database_directory = config.database_directory
-    options.skip_downloaded = options.skip_downloaded or config.skip_downloaded
-    options.combine = options.combine or config.combine
-    options.remove_chars = options.remove_chars if options.remove_chars else (config.remove_chars or "")
-    options.no_chapters = options.no_chapters or config.no_chapters
+    options.skip_downloaded = cli_or_config(options.skip_downloaded, config.skip_downloaded)
+    options.combine = cli_or_config(options.combine, config.combine)
+    options.remove_chars = options.remove_chars if options.remove_chars is not None else (config.remove_chars or "")
+    options.no_chapters = cli_or_config(options.no_chapters, config.no_chapters)
     options.output_format = options.output_format or config.output_format
-    options.write_json_metadata = options.write_json_metadata or config.write_json_metadata
+    options.write_json_metadata = cli_or_config(options.write_json_metadata, config.write_json_metadata)
     options.mp4_audio_encoder = options.mp4_audio_encoder or config.mp4_audio_encoder
     # Applying arguments as global constants
     logging.debug_mode = options.debug
@@ -47,6 +46,11 @@ def main() -> None:
             e.print()
             if logging.debug_mode:
                 logging.print_traceback()
+
+
+def cli_or_config(cli_value: Optional[bool], config_value: Optional[bool]) -> bool:
+    """Returns `cli_value` if the flag was given, otherwise `config_value`"""
+    return cli_value if cli_value is not None else bool(config_value)
 
 
 def process_url(url: str, options, config: Config):

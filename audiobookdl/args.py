@@ -31,20 +31,26 @@ def parse_arguments() -> Any:
         '--combine',
         dest='combine',
         action='store_true',
+        default=None,
         help="Combine output files into a single file",
+    )
+    parser.add_argument(
+        '--no-combine',
+        dest="combine",
+        help="Don't combine output files (overrides config)",
+        action="store_false",
+        default=None,
     )
     parser.add_argument(
         '-o',
         '--output',
         dest="output_template",
-        help="Output location",
-        default="{title}"
+        help="Output location (default: {title})",
     )
     parser.add_argument(
         '--remove-chars',
         dest="remove_chars",
         help = "List of characters that will be removed from output path",
-        default="",
     )
     parser.add_argument(
         '--debug',
@@ -76,7 +82,15 @@ def parse_arguments() -> Any:
         '--no-chapters',
         dest="no_chapters",
         help="Don't include chapters in final file",
-        action="store_true"
+        action="store_true",
+        default=None,
+    )
+    parser.add_argument(
+        '--chapters',
+        dest="no_chapters",
+        help="Include chapters in final file (overrides config)",
+        action="store_false",
+        default=None,
     )
     parser.add_argument(
         '-f',
@@ -120,6 +134,14 @@ def parse_arguments() -> Any:
         dest="skip_downloaded",
         help="Skip downloading books if the output file or directory already exists",
         action="store_true",
+        default=None,
+    )
+    parser.add_argument(
+        '--no-skip-downloaded',
+        dest="skip_downloaded",
+        help="Download books even if they already exist (overrides config)",
+        action="store_false",
+        default=None,
     )
     parser.add_argument(
         '--database_directory',
@@ -132,6 +154,14 @@ def parse_arguments() -> Any:
         dest = "write_json_metadata",
         help = "Write metadata in a separate json file",
         action="store_true",
+        default=None,
+    )
+    parser.add_argument(
+        '--no-write-json-metadata',
+        dest="write_json_metadata",
+        help="Don't write a separate json metadata file (overrides config)",
+        action="store_false",
+        default=None,
     )
     parser.add_argument(
         '--config',

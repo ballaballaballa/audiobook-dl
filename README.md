@@ -70,6 +70,7 @@ information page**
 | url                    | The url of the page where you listen to the audiobook             |
 | -c/--cookie            | Path to a Netscape cookie file                                    |
 | --combine              | Combine all output files into a single file (requires ffmpeg)     |
+| --no-combine           | Don't combine output files (overrides config)                     |
 | --config               | Alternative location of config file                               |
 | --cover                | Only download cover                                               |
 | -d/--debug             | Print debug information                                           |
@@ -79,15 +80,18 @@ information page**
 | --library              | Specific library on service (Sometimes required when using login) |
 | --mp4-audio-encoder    | Audio encoder for MP4/M4A/M4B files (default: aac)                |
 | --no-chapters          | Don't include chapters in output file                             |
+| --chapters             | Include chapters in output file (overrides config)                |
 | -o/--output            | Output location                                                   |
 | --password             | Password to source (Required when using login)                    |
 | --print-output         | Prints the output locations instead of downloading                |
 | -q/--quiet             | Quiet mode                                                        |
 | --remove-chars         | List of characters that will be removed from output path          |
 | --skip-downloaded      | Skip downloading books if the output file or directory exists     |
+| --no-skip-downloaded   | Download books even if they exist (overrides config)              |
 | --username             | Username to source (Required when using login)                    |
 | --verbose-ffmpeg       | Show ffmpeg output in terminal                                    |
 | --write-json-metadata  | Write metadata in a separate json file                            |
+| --no-write-json-metadata | Don't write a separate json metadata file (overrides config)    |
 
 ## Output
 By default, audiobook-dl saves all audiobooks to `{title}` relative to the
