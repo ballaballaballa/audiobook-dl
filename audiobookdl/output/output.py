@@ -360,6 +360,8 @@ def gen_output_location(template: str, metadata: AudiobookMetadata, remove_chars
     for key, value in metadata_dict.items():
         if isinstance(value, str):
             metadata_dict[key] = _remove_chars(_fix_output(value), remove_chars)
+    # Empty values (e.g. no authors) would create empty or absolute path parts
+    metadata_dict = {key: value for key, value in metadata_dict.items() if value != ""}
     formatted = template.format_map(defaultdict(lambda: "NA", metadata_dict))
     return formatted
 
