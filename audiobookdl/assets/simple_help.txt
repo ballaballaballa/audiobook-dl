@@ -5,4 +5,4 @@ audiobook-dl \[options] -c <cookie_file> <url>
 audiobook-dl downloads audiobooks from different audiobook providers. It uses
 cookie files for authentication. For further information take a look at:
  • audiobook-dl --help
- • https://github.com/jo1gi/audiobook-dl
+ • https://github.com/ballaballaballa/audiobook-dl

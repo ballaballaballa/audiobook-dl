@@ -35,8 +35,9 @@ requires-python = ">=3.9"
 dynamic = ["version"]
 
 [project.urls]
-"Homepage" = "https://github.com/jo1gi/audiobook-dl"
-"Bugtracker" = "https://github.com/jo1gi/audiobook-dl/issues"
+"Homepage" = "https://github.com/ballaballaballa/audiobook-dl"
+"Bugtracker" = "https://github.com/ballaballaballa/audiobook-dl/issues"
+"Upstream" = "https://github.com/jo1gi/audiobook-dl"
 
 [project.scripts]
 audiobook-dl = "audiobookdl.__main__:main"

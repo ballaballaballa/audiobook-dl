@@ -1,10 +1,22 @@
 # audiobook-dl
-![GitHub release](https://img.shields.io/github/v/release/jo1gi/audiobook-dl)
-![GitHub top language](https://img.shields.io/github/languages/top/jo1gi/audiobook-dl)
-![License](https://img.shields.io/github/license/jo1gi/audiobook-dl)
-[![Donate using Ko-Fi](https://img.shields.io/badge/donate-kofi-00b9fe?logo=ko-fi&logoColor=00b9fe)](https://ko-fi.com/jo1gi)
+![GitHub top language](https://img.shields.io/github/languages/top/ballaballaballa/audiobook-dl)
+![License](https://img.shields.io/github/license/ballaballaballa/audiobook-dl)
 
 CLI tool for downloading audiobooks from online sources.
+
+> **This is a fork** of [jo1gi/audiobook-dl](https://github.com/jo1gi/audiobook-dl)
+> by Joakim Holm. It is not published to PyPI; install it from this
+> repository (see [Installation](#installation)). `pip install audiobook-dl`
+> installs the original project, not this fork.
+
+### Changes in this fork
+- Fixes for Storytel, Nextory and other sources, ffmpeg combining and HLS streams
+- Better metadata for audiobook apps (MP3/ID3 and MP4/M4B tags, chapters, series)
+- Cover images normalized to JPEG and limited in size for app compatibility
+- Progress bars for ffmpeg conversion, combining and chapter embedding
+- Configurable MP4 audio encoder (`--mp4-audio-encoder`)
+- CLI flags that override config values (`--no-combine`, `--chapters`, ...)
+- A failing book or URL no longer stops the rest of a batch or series
 
 ## Supported Services
 audiobook-dl currently supports downloading from the following sources:
@@ -49,7 +61,7 @@ audiobook-dl uses Netscape cookie files for authentication in most cases. I use
 from the browser.
 
 Cookies can be placed in current dir as `cookies.txt` or be given with the
-`--cookie` argument.
+`--cookies` argument.
 
 ### Login
 [Some sources](./supported_sites.md) support authentication through login with
@@ -68,7 +80,7 @@ information page**
 | Argument               | Value                                                             |
 |------------------------|-------------------------------------------------------------------|
 | url                    | The url of the page where you listen to the audiobook             |
-| -c/--cookie            | Path to a Netscape cookie file                                    |
+| -c/--cookies           | Path to a Netscape cookie file                                    |
 | --combine              | Combine all output files into a single file (requires ffmpeg)     |
 | --no-combine           | Don't combine output files (overrides config)                     |
 | --config               | Alternative location of config file                               |
@@ -81,7 +93,7 @@ information page**
 | --mp4-audio-encoder    | Audio encoder for MP4/M4A/M4B files (default: aac)                |
 | --no-chapters          | Don't include chapters in output file                             |
 | --chapters             | Include chapters in output file (overrides config)                |
-| -o/--output            | Output location                                                   |
+| -o/--output            | Output location (default: `{title}`)                              |
 | --password             | Password to source (Required when using login)                    |
 | --print-output         | Prints the output locations instead of downloading                |
 | -q/--quiet             | Quiet mode                                                        |
@@ -99,10 +111,16 @@ current path. This can be changed with the `--output` argument. Path can be
 customized by audiobook with the following fields:
 - `title`
 - `author`
-- `series`
 - `narrator`
+- `series`
+- `series_order`
+- `genre`
+- `publisher`
+- `isbn`
+- `release_date`
 
-Not all fields are available for all audiobooks.
+Not all fields are available for all audiobooks. Missing fields are replaced
+with `NA`. If a book has no author, the narrator is used instead.
 
 The file extension can be changed with the `--output-format` argument.
 
@@ -110,7 +128,7 @@ The file extension can be changed with the `--output-format` argument.
 audiobook-dl can be configured using a configuration file, which should be placed at:
 - Windows: `C:\\Users\\$user\\AppData\\Local\\jo1gi\\audiobook-dl\\audiobook-dl.toml`
 - Mac: `/Users/$user/Library/Application Support/audiobook-dl/audiobook-dl.toml`
-- Linux `$XDG_CONFIG_DIR/audiobook-dl/audiobook-dl.toml`
+- Linux: `$XDG_CONFIG_HOME/audiobook-dl/audiobook-dl.toml` (usually `~/.config/audiobook-dl/audiobook-dl.toml`)
 
 ### Authentication
 Source credentials can be provided in the configuration file:
@@ -126,7 +144,7 @@ Cookie files can be specified in a similar way:
 [sources.everand]
 cookie_file = "./everand_cookies.txt"
 ```
-Paths are relative to the configuration directory.
+Relative paths are resolved from the directory containing the configuration file.
 
 ### General Options
 You can also set default values for command-line options in the configuration file:
@@ -143,23 +161,11 @@ mp4_audio_encoder = "aac"
 ```
 
 All of these options correspond to their command-line argument equivalents.
+Command-line arguments take precedence over the configuration file.
 
 ## Contributions
-Issues, bug-reports, pull requests or ideas for features and improvements are
-**very welcome**.
+Issues, bug reports and pull requests for this fork are welcome
+[here](https://github.com/ballaballaballa/audiobook-dl/issues).
 
-## Donations
-If you like the project, please consider donating:
-- [Ko-fi](https://ko-fi.com/jo1gi)
-- [Buy me a Coffee](https://www.buymeacoffee.com/joakimholm)
-<details>
-<summary>Cryptocurrencies</summary>
-
-- Bitcoin: bc1qrh8hcnw0fd22y7rmljlmrztwrz2nd5tqckrt44
-- Bitcoin Cash: qp6rt9zx7tfyu9e4alxcn5yf4re5pfztvu8yx0rywh
-- Dash: XfgopGkj4BBpuzsUvrbj9jenXUZ6dXsr3J
-- Etherium: 0x8f5d2eb6d2a4d4615d2b9b1cfa28b4c5b9d18f9f
-- Litecoin: ltc1qfz2936a04m2h7t0srxftygjrq759auav7ndfd3
-- Monero: 853tLAbK5wQ93mdj884C31JGKBUEJCpM25gEjGGLnuVDc8PEDMJi6uC5Vcz9g37K2PeT8FY1bjEveUWqJXNPotFRLwLnn9a
-
-</details>
+## Credits
+audiobook-dl was created by Joakim Holm ([jo1gi](https://github.com/jo1gi)).
