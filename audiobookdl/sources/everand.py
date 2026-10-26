@@ -62,7 +62,7 @@ class EverandSource(Source[str]):
         Download audiobook
 
         :param url: Url to information page or listening page of audiobook
-        :return: Audiobook object
+        :returns: Audiobook object
         """
         url = self.create_listen_url(url)
         book_info = self.extract_info(url)
@@ -86,7 +86,7 @@ class EverandSource(Source[str]):
         Extract information from listening page
 
         :param url: Url of listening page
-        :return: Metadata from page as dictionary
+        :returns: Metadata from page as dictionary
         """
         raw = self.find_in_page(
             url,
@@ -161,7 +161,7 @@ class EverandSource(Source[str]):
         Change url to listen page if information page is used
 
         :param url: Url of information or listen page
-        :return: Listen page url
+        :returns: Listen page url
         """
         if re.match(self.match[1], url):
             url_id = url.split("/")[4]
@@ -196,7 +196,6 @@ class EverandSource(Source[str]):
         :param original: True if the book is a Scribd Original
         :returns: Cover of book
         """
-        # Downloading image from Everand
         cover_url = metadata["cover_url"]
         raw_cover = self.get(cover_url)
         if raw_cover is None:
@@ -214,7 +213,7 @@ class EverandSource(Source[str]):
     @staticmethod
     def clean_title(title: str):
         """
-        Move ', The' from the end to the beginning of the title
+        Move a trailing ', The' or ', A' to the start of the title
 
         :param title: Original title
         :returns: Fixed title

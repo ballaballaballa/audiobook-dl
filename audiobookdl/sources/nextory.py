@@ -54,7 +54,7 @@ class NextorySource(Source):
 		"X-Os-Info": "Android"
             }
         )
-        # Login for account
+        # Authenticate account
         session_response = self._session.post(
             "https://api.nextory.com/user/v1/sessions",
             json = {
@@ -73,7 +73,7 @@ class NextorySource(Source):
                 "X-Country-Code": country,
             }
         )
-        # Login for user
+        # Select the first profile and obtain a profile token
         profiles_response = self._session.get(
             "https://api.nextory.com/user/v1/me/profiles",
         )
@@ -172,10 +172,10 @@ class NextorySource(Source):
 
     def find_book_info(self, book_id: int, want_to_read_list: list) -> dict:
         """
-        Find metadata about book in list of active books
+        Find metadata about book in the want-to-read list
 
-        :param format_id: Id of audio format
-        :param want_to_read_list: List of books the user want to read
+        :param book_id: Id of book
+        :param want_to_read_list: List of books the user wants to read
         :returns: Book metadata
         """
         for book in want_to_read_list:
@@ -185,7 +185,7 @@ class NextorySource(Source):
 
 
     def download_want_to_read_id(self) -> str:
-        """Downloads profile id for want to read list"""
+        """Get the id of the user's want-to-read product list"""
         products_lists = self._session.get(
             "https://api.nextory.com/library/v1/me/product_lists",
             params = {

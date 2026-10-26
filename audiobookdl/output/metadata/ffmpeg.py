@@ -55,6 +55,8 @@ def add_chapters_ffmpeg(filepath: str, chapters: Sequence[Chapter]):
         with open(tmp_chapter_file, "w") as f:
             f.write(create_tmp_chapter_file(filepath, chapters))
 
+        # Copy streams from input 0, take chapters from the FFMETADATA file
+        # (input 1) and clear the audio stream title
         command = [
             "ffmpeg", "-y",
             "-i", filepath,
@@ -66,7 +68,7 @@ def add_chapters_ffmpeg(filepath: str, chapters: Sequence[Chapter]):
             tmp_media_file
         ]
 
-        # In debug mode, skip progress bar and show ffmpeg output directly
+        # With --verbose-ffmpeg (or --debug), skip progress bar and show ffmpeg output directly
         if logging.ffmpeg_output:
             result = subprocess.run(command)
             returncode = result.returncode
@@ -92,7 +94,6 @@ def add_chapters_ffmpeg(filepath: str, chapters: Sequence[Chapter]):
     finally:
         if os.path.exists(tmp_chapter_file):
             os.remove(tmp_chapter_file)
-        # Clean up temp media file if it exists
         if os.path.exists(tmp_media_file):
             os.remove(tmp_media_file)
         

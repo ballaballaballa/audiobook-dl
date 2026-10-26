@@ -22,7 +22,7 @@ class BookBeatSource(Source):
 
     @staticmethod
     def create_device_id() -> str:
-        """Create random device id"""
+        """Create a stable device id (name-based UUID + base64 device name)"""
         return (
             str(uuid.uuid3(uuid.NAMESPACE_DNS, "audiobook-dl"))
             + " "
@@ -126,7 +126,7 @@ class BookBeatSource(Source):
 
 
     def find_book_info(self, book_id: str) -> Dict:
-        """Find book by id from owned books"""
+        """Find book by id among saved books (first 100 only)"""
         for book in self.saved_books["_embedded"]["savedBooks"]:
             if str(book["bookid"]) == book_id:
                 book["metadata"] = self._session.get(

@@ -31,7 +31,7 @@ EasyMP4Tags.RegisterTextKey("track", '\xa9trk')
 EasyMP4Tags.RegisterFreeformKey("scrape_url", "URL")
 
 def is_mp4_file(filepath: str) -> bool:
-    """Returns true if `filepath` points to an id3 file"""
+    """Returns true if `filepath` points to an mp4 file"""
     ext = re.search(r"(?<=(\.))\w+$", filepath)
     return ext is not None and ext.group(0) in MP4_EXTENSIONS
 
@@ -49,7 +49,6 @@ def add_mp4_metadata(filepath: str, metadata: AudiobookMetadata):
 
         audio = EasyMP4(filepath)
         for key, value in metadata.all_properties(allow_duplicate_keys=None):
-            # System defined metadata tags
             if key == "release_date":
                 release_date: date = value
                 audio["date"] = release_date.strftime("%Y-%m-%d")
@@ -59,19 +58,17 @@ def add_mp4_metadata(filepath: str, metadata: AudiobookMetadata):
                 audio.tags.RegisterFreeformKey(key, key.capitalize()) # type: ignore
                 audio["language"] = value.name if hasattr(value, 'name') else str(value)
             elif key == "series":
-                # Use custom rDNSatom for series
+                # Freeform (----:com.apple.iTunes:series) atom
                 audio.tags.RegisterFreeformKey(key, key) # type: ignore
                 audio[key] = value
             elif key == "series_order":
-                # Use custom rDNSatom with name "mvin"
+                # Freeform "mvin" atom for series position
                 audio.tags.RegisterFreeformKey("mvin", "mvin") # type: ignore
                 audio["mvin"] = str(value)
             elif key == "authors":
-                # Join multiple authors with ", "
                 authors_str = ", ".join(value) if isinstance(value, list) else value
                 audio[MP4_CONVERT[key]] = authors_str
             elif key == "narrators":
-                # Join multiple narrators with ", "
                 narrators_str = ", ".join(value) if isinstance(value, list) else value
                 audio[MP4_CONVERT[key]] = narrators_str
             elif key == "genres":
@@ -79,7 +76,6 @@ def add_mp4_metadata(filepath: str, metadata: AudiobookMetadata):
                 genres_str = " / ".join(value) if isinstance(value, list) else value
                 audio[MP4_CONVERT[key]] = genres_str
             elif key == "isbn":
-                # Store ISBN as lowercase "isbn"
                 audio.tags.RegisterFreeformKey("isbn", "isbn") # type: ignore
                 audio["isbn"] = value
             elif key == "publisher":

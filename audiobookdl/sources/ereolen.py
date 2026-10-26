@@ -102,7 +102,7 @@ class EreolenSource(Source):
 
 
     def _get_libraries(self) -> dict:
-        """Returns list of available libraries for login"""
+        """Returns mapping of library name to branch id for login"""
         libraries_raw = self.find_in_page(
             LOGIN_PAGE_URL,
             "libraries = ({.+})<",

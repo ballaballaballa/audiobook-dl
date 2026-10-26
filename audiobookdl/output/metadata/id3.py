@@ -32,8 +32,8 @@ def commercialurl_get(id3, key):
 def commercialurl_set(id3, key, value):
     id3.delall("WCOM")
     for v in value:
-        # scrape urls might contain characters in the unicode range
-        # for audiobooks with non-english titles
+        # WCOM frames are Latin-1 only; percent-encode non-ASCII URLs
+        # (e.g. non-English titles)
         encoded_url = utils.requote_uri(v)
         id3.add(WCOM(url=encoded_url))
 

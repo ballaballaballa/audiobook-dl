@@ -64,7 +64,7 @@ def download_audiobook(audiobook: Audiobook, output_dir: str, options):
 
     # Downloading files
     filepaths = download_files_with_cli_output(audiobook, output_dir)
-    # Converting files
+    # Determine current and target audio format
     current_format, output_format = get_output_audio_format(options.output_format, filepaths)
     # Combine files
     if options.combine and len(filepaths) > 1:
@@ -88,11 +88,11 @@ def add_metadata_to_file(audiobook: Audiobook, filepath: str, options):
 
     :param audiobook: Audiobook object. Stores metadata
     :param filepath: Filepath of output file
-    :options: Cli options
+    :param options: Cli options
     """
     # Chapters (must run before general metadata: ffmpeg-based chapter
     # embedding remuxes the file and drops custom freeform MP4 tags like
-    # series/series-part written by mutagen)
+    # series/mvin written by mutagen)
     if audiobook.chapters and not options.no_chapters:
         logging.book_update("Adding chapters")
         metadata.add_chapters(filepath, audiobook.chapters)
@@ -115,7 +115,7 @@ def add_metadata_to_dir(audiobook: Audiobook, filepaths: Iterable[str], output_d
     :param audiobook: Audiobook object. Stores metadata
     :param filepaths: Iterable over filepaths of output files
     :param output_dir: Directory where files are stored
-    :param optiosn: Cli options
+    :param options: Cli options
     """
     logging.book_update("Adding metadata")
     for filepath in filepaths:
@@ -155,18 +155,17 @@ def download_files_with_cli_output(audiobook: Audiobook, output_dir: str) -> Lis
         # Make sure progress bar is at 100%
         remaining_progress: float = progress.tasks[0].remaining or 0
         update_progress(remaining_progress)
-        # Return filenames of downloaded files
         return filepaths
 
 
 def create_filepath(audiobook: Audiobook, output_dir: str, index: int) -> Tuple[str, str]:
     """
-    Create output file path for file number `index` in `audibook`
+    Create output file path for file number `index` in `audiobook`
 
     :param audiobook: Currently downloading audiobook
     :param output_dir: Directory where file should be stored
     :param index: Index in audiobooks list of files
-    :returns: Filepath, Filepath_tmp
+    :returns: Tuple of (final path, temporary download path)
     """
     extension = audiobook.files[index].ext
     if len(audiobook.files) == 1:
@@ -216,7 +215,6 @@ def download_file(args: Tuple[Audiobook, str, int, Any]) -> str:
         encryption.decrypt_file(filepath_tmp, file.encryption_method)
     # rename file after download is complete
     os.rename(filepath_tmp, filepath)
-    # Return filepath
     return filepath
 
 

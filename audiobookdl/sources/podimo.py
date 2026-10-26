@@ -39,7 +39,7 @@ class PodimoSource(Source[dict]):
         Make graphql request to Podimo
 
         :param operation_name: Name of operation
-        :param query: File query is stored in
+        :param query: Name of the .graphql file in assets/sources/podimo/
         :param variables: Variables for query
         :returns: Response from server
         """
@@ -56,7 +56,7 @@ class PodimoSource(Source[dict]):
 
     @staticmethod
     def extract_id_from_url(url: str) -> str:
-        """Extract audiobook id from url"""
+        """Extract audiobook or podcast id from url"""
         return url.split("/")[-1]
 
 
@@ -146,7 +146,7 @@ class PodimoSource(Source[dict]):
 
     def format_podcast_metadata(self, episode_info) -> AudiobookMetadata:
         """
-        Format unstructed json response as `AudiobookMetadata`
+        Format unstructured json response as `AudiobookMetadata`
 
         :param episode_info: Json response from Podimo
         :returns: Important metadata as `AudiobookMetadata`
@@ -167,7 +167,7 @@ class PodimoSource(Source[dict]):
         book_info = self.download_book_info(audiobook_id)
         metadata = self.format_audiobook_metadata(book_info)
         return Audiobook(
-            # Will sometimes get a 'Authentication required' message if logged in
+            # Use a session without the auth header; Podimo sometimes answers 'Authentication required' when it is sent
             session = requests.Session(),
             files = self.get_audiobook_files(audiobook_id),
             metadata = self.format_audiobook_metadata(book_info),
@@ -215,6 +215,6 @@ class PodimoSource(Source[dict]):
 
 
     def download_cover(self, cover_url: str) -> Cover:
-        # Will sometimes get a 'Authentication required' message if logged in
+        # Use a session without the auth header; Podimo sometimes answers 'Authentication required' when it is sent
         response = requests.get(cover_url)
         return Cover(image = response.content, extension = "png")

@@ -34,7 +34,7 @@ def get(self, url: str, force_cookies: bool = False, **kwargs) -> bytes:
 
 
 def post_json(self, url: str, **kwargs) -> dict:
-    """Downloads data with the given url and converts it to json"""
+    """POST to `url` and parse the response as JSON"""
     resp = self.post(url, **kwargs)
     return json.loads(resp.decode('utf8'))
 

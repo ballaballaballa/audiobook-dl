@@ -52,7 +52,6 @@ def normalize_cover_image(image_data: bytes, declared_format: str) -> Tuple[byte
         if detected_format:
             logging.debug(f"Cover image: declared as '{declared_format}', detected as '{detected_format}'")
 
-        # Open image with PIL
         img = Image.open(io.BytesIO(image_data))
         original_format = img.format
         original_size = img.size
@@ -68,7 +67,6 @@ def normalize_cover_image(image_data: bytes, declared_format: str) -> Tuple[byte
             logging.debug("Cover image is already optimized, using as-is")
             return image_data, 'jpg'
 
-        # Process image
         if needs_resize:
             # Calculate new size maintaining aspect ratio
             ratio = MAX_COVER_SIZE / max(img.size)
@@ -79,7 +77,7 @@ def normalize_cover_image(image_data: bytes, declared_format: str) -> Tuple[byte
         # Convert to RGB if needed (removes transparency, required for JPEG)
         if img.mode != 'RGB':
             logging.debug(f"Converting image mode from {img.mode} to RGB")
-            # If image has transparency, composite it on white background
+            # Composite RGBA/LA on white; other modes (incl. P) are converted directly
             if img.mode in ('RGBA', 'LA'):
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 if img.mode == 'RGBA':

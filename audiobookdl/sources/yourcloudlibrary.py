@@ -46,7 +46,7 @@ class YourCloudLibrarySource(Source):
         Get url for listening page
 
         :param url: Url to information or listening page
-        :return: Url to listening page
+        :returns: Url to listening page
         """
         if re.match(YourCloudLibrarySource.match[0], url):
             return url
@@ -115,7 +115,7 @@ class YourCloudLibrarySource(Source):
         """
         Download metadata about book
 
-        :param url: Book url
+        :param account_id: Findaway account id
         :param fulfillment_id: Id used for book
         :returns: Metadata about book
         """

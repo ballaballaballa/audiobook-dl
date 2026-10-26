@@ -144,7 +144,7 @@ def parse_arguments() -> Any:
 def get_urls(options) -> List[str]:
     """
     Creates a list of all urls in cli options.
-    Urls a found in `options.urls` and read from `options.input_file` if the
+    Urls are found in `options.urls` and read from `options.input_file` if the
     file exists
 
     :param options: Cli options

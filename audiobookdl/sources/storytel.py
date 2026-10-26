@@ -143,7 +143,7 @@ class StorytelSource(Source):
         self._do_login()
 
     def _do_login(self) -> None:
-        # Generate a new UUID for each request
+        # Fresh random device id per login
         generated_device_id = str(uuid.uuid4())
 
         resp = self._session.post(
@@ -213,7 +213,7 @@ class StorytelSource(Source):
 
     @staticmethod
     def _clean_share_url(url: str) -> str:
-        """remove query string/fragment from url"""
+        """Remove the query string (and anything after it) from url"""
         return url.split("?")[0]
 
     def download_from_id(self, book_id: str) -> Audiobook:
@@ -361,7 +361,7 @@ class StorytelSource(Source):
         return data
 
     def download_books_from_website(self, url: str) -> Series[str]:
-        """Download series details from website"""
+        """Scrape a book list page (e.g. publishers, categories) not covered by the API"""
         title = self.find_elems_in_page(url, "h1")[-1].text
         items = self.find_elems_in_page(url, 'a[href*="/books/"]')
         books: List[Union[BookId[str], Audiobook]] = []
@@ -441,7 +441,7 @@ class StorytelSource(Source):
         return result
 
     def download_book_details(self, consumableId: str) -> Dict[str, Any]:
-        """Download books details"""
+        """Download book details"""
         resp = self._session.get(
             f"https://api.storytel.net/book-details/consumables/{consumableId}?kidsMode=false&configVariant=default"
         )
@@ -598,7 +598,6 @@ class StorytelSource(Source):
             return None
 
         cover_url = book_details["cover"]["url"]
-        # cover_url = f"https://www.storytel.com/images/{isbn}/640x640/cover.jpg"
         try:
             cover_data = self.get(cover_url)
             return Cover(cover_data, "jpg")

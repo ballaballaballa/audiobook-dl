@@ -9,7 +9,7 @@ from .. import logging
 
 
 def parse_duration(duration_str: str) -> float:
-    """Parse ffmpeg duration string (HH:MM:SS.ms or SS.ms) to seconds."""
+    """Parse ffmpeg duration string (HH:MM:SS.ms, MM:SS.ms or SS.ms) to seconds."""
     try:
         if ":" in duration_str:
             # Format: HH:MM:SS.ms or MM:SS.ms
@@ -73,7 +73,7 @@ def run_ffmpeg_with_progress(
     if logging.ffmpeg_output:
         # Don't capture output - let it go directly to console for debugging
         result = subprocess.run(command)
-        # Mark task as complete in debug mode
+        # Output not parsed; mark task complete
         if total_duration:
             progress.update(task, completed=total_duration)
         return result.returncode, "", ""

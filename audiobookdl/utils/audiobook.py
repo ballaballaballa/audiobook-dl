@@ -215,7 +215,7 @@ class BookId(Generic[T]):
 class Series(Generic[T]):
     # Title of series
     title: str
-    # Internal ids of book in series
+    # Books in series: `BookId`s to download later, or complete `Audiobook`s
     books: List[Union[BookId[T], Audiobook]]
 
 Result = Union[

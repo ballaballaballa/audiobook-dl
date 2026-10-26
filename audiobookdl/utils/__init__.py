@@ -7,7 +7,7 @@ from ssl import SSLContext
 
 def levenstein_distance(a: str, b: str) -> int:
     """
-    Calculates the levenstein distance between `a` and `b`
+    Calculates the Levenshtein distance between `a` and `b`
 
     https://en.wikipedia.org/wiki/Levenshtein_distance
     """
@@ -38,7 +38,7 @@ def read_asset_file(path: str) -> str:
 
 
 def program_in_path(program: str) -> bool:
-    """Checks whethher `program` is in the path"""
+    """Checks whether `program` is in the path"""
     return shutil.which(program) is not None
 
 class CustomSSLContextHTTPAdapter(HTTPAdapter):

@@ -16,7 +16,6 @@ class OverdriveSource(Source):
 
 
     def download(self, url: str) -> Audiobook:
-        # Parse url
         parsed_url = parse_url(url)
         hostname = parsed_url.hostname
         prefix = f"https://{hostname}"
@@ -51,7 +50,7 @@ class OverdriveSource(Source):
         return Cover(cover_data, "jpg")
 
     def _get_previous_length(self, index: int, book_info) -> int:
-        """Returns the ending point of the previous part"""
+        """Returns the start time (seconds) of part `index`: the summed duration of earlier parts"""
         if index == 0:
             return 0
         return self._get_previous_length(index-1, book_info) + \

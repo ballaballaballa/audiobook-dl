@@ -40,7 +40,7 @@ def gen_output_filename(booktitle: str, file: Mapping[str, str], template: str) 
 
 def combine_audiofiles(filepaths: Sequence[str], tmp_dir: str, output_path: str):
     """
-    Combines the given audiofiles in `path` into a new file
+    Combine `filepaths` into a single file at `output_path`. `tmp_dir` is deleted afterwards.
 
     :param filepaths: Paths to audio files
     :param tmp_dir: Temporary directory with audio files
@@ -54,7 +54,7 @@ def combine_audiofiles(filepaths: Sequence[str], tmp_dir: str, output_path: str)
     # Calculate total chunks for progress tracking
     num_chunks = (len(filepaths) - 1 + COMBINE_CHUNK_SIZE - 1) // COMBINE_CHUNK_SIZE
 
-    # In debug mode, skip progress bar and show ffmpeg output directly
+    # With --verbose-ffmpeg (or --debug), skip progress bar and show ffmpeg output directly
     if logging.ffmpeg_output:
         for chunk_idx, i in enumerate(range(1, len(filepaths), COMBINE_CHUNK_SIZE)):
             chunk_files = filepaths[i:i+COMBINE_CHUNK_SIZE]
@@ -79,7 +79,7 @@ def combine_audiofiles(filepaths: Sequence[str], tmp_dir: str, output_path: str)
                 tmp_output
             ]
 
-            # Run ffmpeg directly in debug mode
+            # Let ffmpeg write straight to the terminal
             result = subprocess.run(command)
             if result.returncode != 0:
                 logging.log(f"[red]Error combining files[/red]")
@@ -151,13 +151,13 @@ def get_extension(path: str) -> str:
 
 def can_copy_codec(input_format: str, output_format: str) -> bool:
     """
-    Checks whether the codec can be copies to the new output
+    Checks whether the codec can be copied to the new output
 
-    :param input_format: Input file filetype
+    :param input_format: Input extension without leading dot
     :param output_format: Output file filetype
     :returns: True if the codec can be copied
     """
-    # TODO Add better verification
+    # Only these container changes are known to accept the source codec as-is
     return output_format == "mkv" \
         or output_format == "mka" \
         or (input_format == "ts" and output_format == "mp3")
@@ -214,16 +214,16 @@ def get_audio_bitrate(filepath: str) -> Union[int, None]:
 
 
 def convert_output(filenames: Sequence[str], output_format: str, mp4_audio_encoder: str = None):
-    """Converts a list of audio files into another format and return new
-    files
+    """Convert audio files to `output_format`, deleting the originals
 
     :param filenames: List of input files to convert
     :param output_format: Target output format
     :param mp4_audio_encoder: Audio encoder for MP4/M4A/M4B files (default: aac)
+    :returns: Paths of the converted files
     """
     new_paths = []
 
-    # In debug mode, skip progress bar and show ffmpeg output directly
+    # With --verbose-ffmpeg (or --debug), skip progress bar and show ffmpeg output directly
     if logging.ffmpeg_output:
         for old_path in filenames:
             path_without_ext, old_ext = os.path.splitext(old_path)
@@ -250,7 +250,7 @@ def convert_output(filenames: Sequence[str], output_format: str, mp4_audio_encod
                     else:
                         command = ["ffmpeg", "-y", "-i", old_path, new_path]
 
-                # Run ffmpeg directly in debug mode
+                # Let ffmpeg write straight to the terminal
                 result = subprocess.run(command)
                 if result.returncode != 0:
                     filename = os.path.basename(old_path)
@@ -272,7 +272,6 @@ def convert_output(filenames: Sequence[str], output_format: str, mp4_audio_encod
                     filename = os.path.basename(old_path)
                     description = f"Converting {filename}"
 
-                    # Create progress task
                     task = create_progress_task(progress, description, duration)
 
                     # Build ffmpeg command
@@ -333,7 +332,7 @@ def gen_output_location(template: str, metadata: AudiobookMetadata, remove_chars
     Generates the location of the output based on attributes of the audiobook.
 
     :param template: Python string template audiobook metadata is put into
-    :param metadata: Audiobook metadata,
+    :param metadata: Audiobook metadata
     :param remove_chars: List of characters to be removed from the final path
     :returns: `template` with metadata inserted
     """

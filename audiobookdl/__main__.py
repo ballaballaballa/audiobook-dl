@@ -65,7 +65,6 @@ def process_url(url: str, options, config: Config):
     source = source_class(options)
     if source.requires_authentication and not source.authenticated:
         authenticate(url, source, options, config)
-    # Running program
     logging.debug(f"Downloading result of [underline]{url}")
     result = source.download(url)
     logging.log("") # Empty line
@@ -165,7 +164,7 @@ def audiobook_from_series(source: Source, book) -> Audiobook:
     Make an audiobook object from book result in series
 
     :param source: Source book originates from
-    :param book: Audiobook metadata or book id
+    :param book: `Audiobook` or `BookId`
     :returns: Audiobook
     """
     if isinstance(book, Audiobook):

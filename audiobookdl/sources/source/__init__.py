@@ -25,15 +25,15 @@ class Source(Generic[T]):
     login_data: List[str] = [ "username", "password" ]
     # A list of regexes that indicates which website a service supports
     match: List[str] = []
-    # list of names
+    # Names the source can be selected by; the first is the primary name
     names: List[str] = []
     # Methods for authenticating
     _authentication_methods: List[str] = [ "cookies" ]
-    # Create database directory for source
+    # Whether to create a per-source directory under database_directory
     create_storage_dir: bool = False
-    # If cookies are loaded
+    # Set once cookies are loaded or login succeeds
     __authenticated = False
-    # Cache of previously loaded pages
+    # Cache of previously loaded pages (class-level: shared by all instances)
     __pages: Dict[str, bytes] = {}
 
     def __init__(self, options: Any):
@@ -139,7 +139,7 @@ class Source(Generic[T]):
 
     def find_elems_in_page(self, url: str, selector: str, **kwargs) -> Any:
         """
-        Find all html elements in the page from `url` that's matches `selector`.
+        Find all html elements in the page from `url` that match `selector`.
         Will cache the page.
         """
         sel = CSSSelector(selector)
@@ -164,7 +164,7 @@ class Source(Generic[T]):
 
     def find_all_in_page(self, url: str, regex: str, **kwargs) -> list:
         """
-        Find all places in a page that matches the regex.
+        Find all places in a page that match the regex.
         Will cache the page.
         """
         return re.findall(regex, self._get_page(url, **kwargs).decode("utf8"))
@@ -195,6 +195,5 @@ class Source(Generic[T]):
     def create_session(self, options: Any) -> requests.Session:
         session = requests.Session()
         ssl_context: SSLContext = self.create_ssl_context(options)
-        # session.adapters.pop("https://", None)
         session.mount("https://", CustomSSLContextHTTPAdapter(ssl_context))
         return session
