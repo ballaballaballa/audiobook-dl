@@ -8,6 +8,8 @@ import hashlib
 import uuid
 import platform
 import pycountry
+import re
+from urllib.parse import urlparse
 
 
 def calculate_checksum(username: str, password: str, salt: str) -> str:
@@ -93,7 +95,11 @@ class NextorySource(Source):
 
 
     def download(self, url) -> Audiobook:
-        book_id = int(url.split("/")[-1].split("-")[-1])
+        # Book id is the number at the end of the path, e.g. /bok/some-title-12345/
+        id_match = re.search(r"(\d+)/?$", urlparse(url).path)
+        if id_match is None:
+            raise DataNotPresent(message=f"Could not extract book id from url: {url}")
+        book_id = int(id_match.group(1))
 
         # Try to get book info directly from API first
         book_info = self.get_book_info_direct(book_id)
