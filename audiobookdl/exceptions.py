@@ -1,6 +1,7 @@
 import audiobookdl.sources as sources
 from .logging import print_error_file, error
 from typing import Optional
+from rich.markup import escape
 
 class AudiobookDLException(Exception):
     error_description = "unknown"
@@ -15,7 +16,7 @@ class AudiobookDLException(Exception):
     def print(self) -> None:
         print_error_file(self.error_description, **self.data)
         if self.message:
-            error(self.message)
+            error(escape(self.message))
 
 class DataNotPresent(AudiobookDLException):
     error_description = "data_not_present"

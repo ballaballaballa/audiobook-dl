@@ -8,6 +8,7 @@ from .config import load_config, Config, SourceConfig
 import os
 import sys
 import platformdirs
+from rich.markup import escape
 from rich.prompt import Prompt
 from typing import List, Optional, Union
 
@@ -42,10 +43,18 @@ def main() -> None:
     for url in urls:
         try:
             process_url(url, options, config)
-        except AudiobookDLException as e:
-            e.print()
-            if logging.debug_mode:
-                logging.print_traceback()
+        except Exception as e:
+            print_error(e)
+
+
+def print_error(e: Exception) -> None:
+    """Print error, with traceback in debug mode"""
+    if isinstance(e, AudiobookDLException):
+        e.print()
+    else:
+        logging.error(f"[red]Unexpected error:[/red] {escape(repr(e))}")
+    if logging.debug_mode:
+        logging.print_traceback()
 
 
 def cli_or_config(cli_value: Optional[bool], config_value: Optional[bool]) -> bool:
@@ -88,6 +97,10 @@ def process_url(url: str, options, config: Config):
                 continue
             except BookNotFound:
                 logging.log(f"Skipped [blue]{book}[/] (not found)")
+                continue
+            except Exception as e:
+                print_error(e)
+                logging.log(f"Skipped [blue]{book}[/] (failed)")
                 continue
 
 
